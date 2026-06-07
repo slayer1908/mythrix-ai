@@ -1,0 +1,62 @@
+{
+    "name": "MYTHRIX.AI — Autonomous Marketing",
+    "short_name": "Mythrix",
+    "description": "Fully autonomous AI for digital marketing. Content, creatives, ads, social, analytics — all on autopilot.",
+    "start_url": ".",
+    "scope": "/",
+    "display": "standalone",
+    "display_override": ["window-controls-overlay", "standalone"],
+    "background_color": "#06070C",
+    "theme_color": "#7C5CFF",
+    "orientation": "any",
+    "prefer_related_applications": false,
+    "categories": ["productivity", "business", "marketing"],
+    "lang": "en",
+    "dir": "ltr",
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Mission Control",
+            "url": "/app/dashboard",
+            "description": "Open the live KPI dashboard"
+        },
+        {
+            "name": "Content Studio",
+            "url": "/app/content",
+            "description": "Generate AI content"
+        },
+        {
+            "name": "Creative Studio",
+            "url": "/app/creative",
+            "description": "Generate AI images"
+        },
+        {
+            "name": "Ads Manager",
+            "url": "/app/ads",
+            "description": "Launch and manage ad campaigns"
+        }
+    ]
+}

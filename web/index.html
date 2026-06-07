@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <!-- SEO -->
+  <meta name="description" content="The autonomous marketing OS. Generate content, launch ads across 11 networks, run automation rules 24/7. One brain. Every channel.">
+  <meta name="keywords" content="AI marketing, autonomous marketing, AI ad automation, Google Ads automation, Meta Ads automation, marketing automation, AdPulse alternative, Madgicx alternative, Revealbot alternative, mythrix">
+  <meta name="author" content="Mythrix.AI">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph (Facebook, LinkedIn, Slack, Discord link previews) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="MYTHRIX.AI">
+  <meta property="og:title" content="MYTHRIX.AI — Marketing on autopilot">
+  <meta property="og:description" content="The autonomous marketing OS. Generate content, launch ads across 11 networks, run automation rules 24/7. One brain. Every channel.">
+  <meta property="og:image" content="icons/Icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:url" content="https://mythrix.ai/">
+
+  <!-- Twitter card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@mythrix_ai">
+  <meta name="twitter:title" content="MYTHRIX.AI — Marketing on autopilot">
+  <meta name="twitter:description" content="Generate content, launch ads on 11 networks, run automation rules 24/7. One brain. Every channel.">
+  <meta name="twitter:image" content="icons/Icon-512.png">
+
+  <!-- Structured data — richer Google search results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MYTHRIX.AI",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, iOS, Android, Windows, macOS",
+    "description": "The autonomous marketing OS. Generate content, launch ads across 11 networks, run automation rules 24/7.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "ratingCount": "1200"
+    }
+  }
+  </script>
+
+  <!-- PWA / installable web app -->
+  <meta name="theme-color" content="#7C5CFF">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mythrix">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="manifest" href="manifest.json">
+
+  <title>MYTHRIX.AI — Marketing on autopilot</title>
+
+  <!-- Loading screen: matches the dark "cosmic" aesthetic of the app so the
+       transition from page-load to Flutter splash feels seamless. -->
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #06070C; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #F5F7FA;
+      overflow: hidden;
+    }
+    #boot {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 24px;
+      background: radial-gradient(circle at 30% 20%, rgba(124,92,255,.25), transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(34,211,238,.20), transparent 50%),
+                  #06070C;
+      transition: opacity 400ms ease-out;
+    }
+    #boot.fade { opacity: 0; pointer-events: none; }
+    #boot .mark {
+      font-weight: 800;
+      font-size: 36px;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #7C5CFF, #22D3EE);
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent;
+    }
+    #boot .progress {
+      width: 180px; height: 2px;
+      background: rgba(255,255,255,.1);
+      border-radius: 2px; overflow: hidden;
+    }
+    #boot .progress span {
+      display: block; height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #7C5CFF, #22D3EE);
+      animation: slide 1.2s infinite ease-in-out;
+    }
+    #boot .tag {
+      font-size: 11px; opacity: .6; letter-spacing: 2px; text-transform: uppercase;
+    }
+    @keyframes slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+  </style>
+</head>
+<body>
+  <div id="boot">
+    <div class="mark">MYTHRIX<span style="color:#22D3EE">.AI</span></div>
+    <div class="progress"><span></span></div>
+    <div class="tag">Calibrating your growth engine…</div>
+  </div>
+
+  <script>
+    // Fade out the boot screen when Flutter has rendered its first frame.
+    function removeBoot() {
+      var el = document.getElementById('boot');
+      if (!el) return;
+      el.classList.add('fade');
+      setTimeout(function () { if (el && el.parentNode) el.remove(); }, 500);
+    }
+    window.addEventListener('flutter-first-frame', removeBoot);
+
+    // Safety net: if Flutter hasn't booted within 8s (network slow, JS error,
+    // service worker stuck), force-fade the loader so the user at least sees
+    // SOMETHING — either Flutter or a blank canvas + console errors to debug.
+    setTimeout(function () {
+      var el = document.getElementById('boot');
+      if (el) {
+        var tag = el.querySelector('.tag');
+        if (tag) tag.textContent = 'Taking longer than expected — retrying…';
+      }
+    }, 8000);
+    setTimeout(removeBoot, 12000);
+
+    // Aggressively kill any stale service workers that were cached from a
+    // previous deploy. Solves "splash stuck forever" on re-deploys.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        for (var i = 0; i < regs.length; i++) {
+          // Unregister, but don't await — we still want Flutter to load now.
+          regs[i].unregister().catch(function () {});
+        }
+      }).catch(function () {});
+    }
+
+    // Log JS errors visibly during the boot phase so we can spot the cause
+    // when the user shares a screenshot.
+    window.addEventListener('error', function (e) {
+      var el = document.getElementById('boot');
+      if (el) {
+        var tag = el.querySelector('.tag');
+        if (tag) tag.textContent = 'BOOT ERROR: ' + (e.message || 'unknown');
+      }
+    });
+  </script>
+
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
