@@ -2,6 +2,34 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 
+/// Whether the user is running a single brand or managing many for clients.
+enum AccountType { brand, agency }
+
+extension AccountTypeX on AccountType {
+  String get label {
+    switch (this) {
+      case AccountType.brand: return 'I run a brand / business';
+      case AccountType.agency: return 'I run an agency / freelance';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case AccountType.brand:
+        return 'Single brand workspace. Mythrix learns your voice + audience and runs your marketing.';
+      case AccountType.agency:
+        return 'Multi-client workspace. Set up the agency once, then add a brand for each client.';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AccountType.brand: return Icons.storefront_rounded;
+      case AccountType.agency: return Icons.workspaces_rounded;
+    }
+  }
+}
+
 /// User's brand profile — captured during onboarding, feeds every AI prompt.
 class BrandProfile {
   const BrandProfile({
@@ -12,6 +40,7 @@ class BrandProfile {
     required this.audience,
     required this.primaryGoal,
     required this.industry,
+    this.accountType = AccountType.brand,
   });
 
   final String id;
@@ -21,6 +50,7 @@ class BrandProfile {
   final String audience;
   final String primaryGoal;
   final String industry;
+  final AccountType accountType;
 
   /// Used by [ContentBrief.systemPrompt] to inject brand context into the LLM.
   String toPromptContext() {
@@ -41,6 +71,7 @@ Primary goal: $primaryGoal
         'audience': audience,
         'primaryGoal': primaryGoal,
         'industry': industry,
+        'accountType': accountType.name,
       };
 
   static BrandProfile fromMap(Map<dynamic, dynamic> m) => BrandProfile(
@@ -52,6 +83,10 @@ Primary goal: $primaryGoal
         audience: m['audience'] as String? ?? '',
         primaryGoal: m['primaryGoal'] as String? ?? '',
         industry: m['industry'] as String? ?? '',
+        accountType: AccountType.values.firstWhere(
+          (t) => t.name == m['accountType'],
+          orElse: () => AccountType.brand,
+        ),
       );
 
   static const _builderDefaults = BrandProfile(
@@ -69,8 +104,8 @@ Primary goal: $primaryGoal
   bool get isComplete =>
       brandName.isNotEmpty &&
       voiceTags.isNotEmpty &&
-      audience.isNotEmpty &&
-      primaryGoal.isNotEmpty;
+      (accountType == AccountType.agency || audience.isNotEmpty) &&
+      (accountType == AccountType.agency || primaryGoal.isNotEmpty);
 
   BrandProfile copyWith({
     String? id,
@@ -80,6 +115,7 @@ Primary goal: $primaryGoal
     String? audience,
     String? primaryGoal,
     String? industry,
+    AccountType? accountType,
   }) {
     return BrandProfile(
       id: id ?? this.id,
@@ -89,11 +125,32 @@ Primary goal: $primaryGoal
       audience: audience ?? this.audience,
       primaryGoal: primaryGoal ?? this.primaryGoal,
       industry: industry ?? this.industry,
+      accountType: accountType ?? this.accountType,
     );
   }
 }
 
-/// Picker presets shown in the wizard.
+/// "Vibes" — brand colors with mood labels people understand without
+/// knowing color theory. Each maps to a Mythrix design-system swatch.
+class BrandVibe {
+  const BrandVibe(this.label, this.tagline, this.color);
+  final String label;
+  final String tagline;
+  final Color color;
+}
+
+const kBrandVibes = <BrandVibe>[
+  BrandVibe('Bold', 'Confident, energetic, attention-grabbing', AppColors.mythrixViolet),
+  BrandVibe('Trusted', 'Professional, dependable, blue-chip', AppColors.mythrixIndigo),
+  BrandVibe('Playful', 'Fun, friendly, conversational', AppColors.mythrixPink),
+  BrandVibe('Premium', 'Luxurious, exclusive, refined', AppColors.mythrixMagenta),
+  BrandVibe('Calm', 'Clean, balanced, considered', AppColors.mythrixCyan),
+  BrandVibe('Energetic', 'Fresh, alive, optimistic', AppColors.mythrixLime),
+  BrandVibe('Warm', 'Inviting, human, approachable', AppColors.mythrixAmber),
+  BrandVibe('Bold + warm', 'Loud, hot, viral', AppColors.mythrixCoral),
+];
+
+/// Legacy alias — kept for any code still reading raw colors.
 const kBrandColorPresets = <Color>[
   AppColors.mythrixViolet,
   AppColors.mythrixCyan,

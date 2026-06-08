@@ -28,14 +28,19 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
   int _step = 0;
 
   // Field state
+  AccountType? _accountType;
   final _brandNameCtrl = TextEditingController();
   final _audienceCtrl = TextEditingController();
   Color _accent = AppColors.mythrixViolet;
+  String _vibeLabel = 'Bold';
   final Set<String> _voiceTags = {};
   String _industry = 'SaaS / Software';
   String _goal = '';
 
-  static const _totalSteps = 5;
+  /// Step count: Brand → 6 steps (Type, Name, Vibe, Voice, Audience, Goal+Celebration combined)
+  /// Agency → 4 steps (Type, Name, Vibe, Celebration)
+  int get _totalSteps =>
+      _accountType == AccountType.agency ? 4 : 6;
 
   @override
   void dispose() {
@@ -46,20 +51,26 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
   }
 
   bool get _canContinue {
-    switch (_step) {
-      case 0:
-        return _brandNameCtrl.text.trim().isNotEmpty;
-      case 1:
-        return _voiceTags.isNotEmpty;
-      case 2:
-        return _audienceCtrl.text.trim().isNotEmpty;
-      case 3:
-        return _goal.isNotEmpty;
-      case 4:
-        return true; // Celebration step — always ready to finish
-      default:
-        return false;
+    // Step 0 = account type
+    if (_step == 0) return _accountType != null;
+
+    // Brand vs Agency path (different step indices)
+    if (_accountType == AccountType.agency) {
+      switch (_step) {
+        case 1: return _brandNameCtrl.text.trim().isNotEmpty; // Agency name
+        case 2: return true; // Vibe (preselected)
+        case 3: return true; // Celebration
+      }
+    } else {
+      switch (_step) {
+        case 1: return _brandNameCtrl.text.trim().isNotEmpty; // Brand name
+        case 2: return true; // Vibe (preselected)
+        case 3: return _voiceTags.isNotEmpty;
+        case 4: return _audienceCtrl.text.trim().isNotEmpty;
+        case 5: return _goal.isNotEmpty; // Goal + celebration combined
+      }
     }
+    return false;
   }
 
   void _next() {
@@ -87,15 +98,125 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
   }
 
   void _finish() {
+    final isAgency = _accountType == AccountType.agency;
     final profile = BrandProfile(
       brandName: _brandNameCtrl.text.trim(),
       accentColor: _accent,
-      voiceTags: _voiceTags.toList(),
-      audience: _audienceCtrl.text.trim(),
-      primaryGoal: _goal,
-      industry: _industry,
+      voiceTags: isAgency ? const ['Professional'] : _voiceTags.toList(),
+      audience: isAgency
+          ? 'Multiple client audiences'
+          : _audienceCtrl.text.trim(),
+      primaryGoal: isAgency
+          ? 'Manage clients'
+          : _goal,
+      industry: isAgency ? 'Agency' : _industry,
+      accountType: _accountType ?? AccountType.brand,
     );
     ref.read(brandProfileProvider.notifier).save(profile);
+    context.go(AppRoutes.dashboard);
+  }
+
+  /// Skip → save a minimal placeholder profile so the router lets the user
+  /// through to the dashboard. They can fill in real details later via Brand
+  /// Assets. Without this, the router redirects them back to onboarding
+  /// because `onboardingDoneProvider` would still be false.
+  List<Widget> _buildSteps() {
+    // Step 0 is always Account Type
+    final base = <Widget>[
+      _StepAccountType(
+        selected: _accountType,
+        onSelect: (t) => setState(() => _accountType = t),
+      ),
+    ];
+
+    if (_accountType == AccountType.agency) {
+      return [
+        ...base,
+        _StepName(
+          ctrl: _brandNameCtrl,
+          title: "What's your agency called?",
+          subtitle: 'This is the workspace name. You\'ll add a brand profile per client later.',
+          industry: 'Agency',
+          showIndustry: false,
+          onIndustry: (_) {},
+          onNameChanged: () => setState(() {}),
+        ),
+        _StepVibe(
+          selected: _vibeLabel,
+          onSelect: (v) => setState(() {
+            _vibeLabel = v.label;
+            _accent = v.color;
+          }),
+        ),
+        _Step4Celebration(
+          brandName: _brandNameCtrl.text.trim().isNotEmpty ? _brandNameCtrl.text : 'My agency',
+          accent: _accent,
+          voiceTags: const ['Professional'],
+          audience: 'Multiple client audiences',
+          goal: 'Manage clients',
+          industry: 'Agency',
+        ),
+      ];
+    }
+
+    // Brand path
+    return [
+      ...base,
+      _StepName(
+        ctrl: _brandNameCtrl,
+        title: "What's your brand called?",
+        subtitle: 'This is what customers know you as. We\'ll use it in every AI prompt and document.',
+        industry: _industry,
+        showIndustry: true,
+        onIndustry: (s) => setState(() => _industry = s),
+        onNameChanged: () => setState(() {}),
+      ),
+      _StepVibe(
+        selected: _vibeLabel,
+        onSelect: (v) => setState(() {
+          _vibeLabel = v.label;
+          _accent = v.color;
+        }),
+      ),
+      _Step1Voice(
+        selected: _voiceTags,
+        onToggle: (t) => setState(() {
+          if (_voiceTags.contains(t)) {
+            _voiceTags.remove(t);
+          } else {
+            if (_voiceTags.length < 5) _voiceTags.add(t);
+          }
+        }),
+      ),
+      _Step2Audience(
+        ctrl: _audienceCtrl,
+        onChanged: () => setState(() {}),
+      ),
+      _Step3Goal(
+        selected: _goal,
+        onSelect: (g) => setState(() => _goal = g),
+      ),
+    ];
+  }
+
+  void _skip() {
+    final type = _accountType ?? AccountType.brand;
+    final placeholder = BrandProfile(
+      brandName: _brandNameCtrl.text.trim().isNotEmpty
+          ? _brandNameCtrl.text.trim()
+          : (type == AccountType.agency ? 'My agency' : 'My brand'),
+      accentColor: _accent,
+      voiceTags: _voiceTags.isNotEmpty ? _voiceTags.toList() : ['Friendly'],
+      audience: _audienceCtrl.text.trim().isNotEmpty
+          ? _audienceCtrl.text.trim()
+          : (type == AccountType.agency ? 'Multiple client audiences' : 'My audience'),
+      primaryGoal: _goal.isNotEmpty
+          ? _goal
+          : (type == AccountType.agency ? 'Manage clients' : 'Build brand awareness'),
+      industry: type == AccountType.agency ? 'Agency' : (_industry.isNotEmpty ? _industry : 'Other'),
+      accountType: type,
+    );
+    ref.read(brandProfileProvider.notifier).save(placeholder);
     context.go(AppRoutes.dashboard);
   }
 
@@ -118,47 +239,12 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
                       _ProgressBar(step: _step, total: _totalSteps),
                       AppSpacing.vGapXl,
                       SizedBox(
-                        height: 380,
+                        height: 420,
                         child: PageView(
                           controller: _pageCtrl,
                           physics: const NeverScrollableScrollPhysics(),
                           onPageChanged: (i) => setState(() => _step = i),
-                          children: [
-                            _Step0Brand(
-                              nameCtrl: _brandNameCtrl,
-                              accent: _accent,
-                              industry: _industry,
-                              onAccent: (c) => setState(() => _accent = c),
-                              onIndustry: (s) => setState(() => _industry = s),
-                              onNameChanged: () => setState(() {}),
-                            ),
-                            _Step1Voice(
-                              selected: _voiceTags,
-                              onToggle: (t) => setState(() {
-                                if (_voiceTags.contains(t)) {
-                                  _voiceTags.remove(t);
-                                } else {
-                                  if (_voiceTags.length < 5) _voiceTags.add(t);
-                                }
-                              }),
-                            ),
-                            _Step2Audience(
-                              ctrl: _audienceCtrl,
-                              onChanged: () => setState(() {}),
-                            ),
-                            _Step3Goal(
-                              selected: _goal,
-                              onSelect: (g) => setState(() => _goal = g),
-                            ),
-                            _Step4Celebration(
-                              brandName: _brandNameCtrl.text,
-                              accent: _accent,
-                              voiceTags: _voiceTags.toList(),
-                              audience: _audienceCtrl.text,
-                              goal: _goal,
-                              industry: _industry,
-                            ),
-                          ],
+                          children: _buildSteps(),
                         ),
                       ),
                       AppSpacing.vGapLg,
@@ -172,7 +258,7 @@ class _OnboardingWizardState extends ConsumerState<OnboardingWizard> {
                             ),
                           const Spacer(),
                           TextButton(
-                            onPressed: () => context.go(AppRoutes.dashboard),
+                            onPressed: _skip,
                             child: const Text('Skip for now'),
                           ),
                           AppSpacing.hGapSm,
@@ -783,6 +869,307 @@ class _MiniRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ===== NEW: Account type picker (Step 0) =====
+
+class _StepAccountType extends StatelessWidget {
+  const _StepAccountType({required this.selected, required this.onSelect});
+  final AccountType? selected;
+  final ValueChanged<AccountType> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text("First — who's signing up?",
+            style: Theme.of(context).textTheme.headlineSmall),
+        AppSpacing.vGapXs,
+        Text(
+          'Mythrix tailors itself to how you work. Pick the one that fits.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+        ),
+        AppSpacing.vGapLg,
+        for (final t in AccountType.values) ...[
+          _AccountTypeCard(
+            type: t,
+            selected: selected == t,
+            onTap: () => onSelect(t),
+          ),
+          AppSpacing.vGapSm,
+        ],
+      ],
+    );
+  }
+}
+
+class _AccountTypeCard extends StatelessWidget {
+  const _AccountTypeCard({
+    required this.type,
+    required this.selected,
+    required this.onTap,
+  });
+  final AccountType type;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            gradient: selected
+                ? LinearGradient(colors: [
+                    AppColors.mythrixViolet.withValues(alpha: 0.15),
+                    AppColors.mythrixCyan.withValues(alpha: 0.08),
+                  ])
+                : null,
+            border: Border.all(
+              color: selected ? AppColors.mythrixViolet : color.outline,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.mythrixViolet.withValues(alpha: 0.18)
+                      : color.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Icon(type.icon,
+                    color: selected ? AppColors.mythrixViolet : null),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(type.label,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 15)),
+                    AppSpacing.vGapXs,
+                    Text(
+                      type.description,
+                      style: TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: color.onSurface.withValues(alpha: 0.65)),
+                    ),
+                  ],
+                ),
+              ),
+              if (selected)
+                const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(Icons.check_circle_rounded,
+                      color: AppColors.mythrixViolet),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ===== NEW: Name + Industry (replaces _Step0Brand) =====
+
+class _StepName extends StatelessWidget {
+  const _StepName({
+    required this.ctrl,
+    required this.title,
+    required this.subtitle,
+    required this.industry,
+    required this.showIndustry,
+    required this.onIndustry,
+    required this.onNameChanged,
+  });
+
+  final TextEditingController ctrl;
+  final String title, subtitle, industry;
+  final bool showIndustry;
+  final ValueChanged<String> onIndustry;
+  final VoidCallback onNameChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.headlineSmall),
+        AppSpacing.vGapXs,
+        Text(
+          subtitle,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+        ),
+        AppSpacing.vGapLg,
+        TextField(
+          controller: ctrl,
+          onChanged: (_) => onNameChanged(),
+          decoration: const InputDecoration(
+            labelText: 'Name',
+            hintText: 'e.g. Brewline, Acme Co., Stellar Studios',
+            prefixIcon: Icon(Icons.brush_rounded),
+          ),
+        ),
+        if (showIndustry) ...[
+          AppSpacing.vGapMd,
+          Text('Industry', style: Theme.of(context).textTheme.labelMedium),
+          AppSpacing.vGapXs,
+          SizedBox(
+            height: 38,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: kIndustryOptions.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 6),
+              itemBuilder: (_, i) {
+                final v = kIndustryOptions[i];
+                return ChoiceChip(
+                  label: Text(v, style: const TextStyle(fontSize: 12)),
+                  selected: industry == v,
+                  onSelected: (_) => onIndustry(v),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ===== NEW: Vibe picker =====
+
+class _StepVibe extends StatelessWidget {
+  const _StepVibe({required this.selected, required this.onSelect});
+  final String selected;
+  final ValueChanged<BrandVibe> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Pick a vibe', style: Theme.of(context).textTheme.headlineSmall),
+        AppSpacing.vGapXs,
+        Text(
+          "Don't overthink it — Mythrix uses this for accent colors across the app. Change it anytime in Brand Assets.",
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+        ),
+        AppSpacing.vGapLg,
+        Expanded(
+          child: GridView.builder(
+            shrinkWrap: true,
+            itemCount: kBrandVibes.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 3.0,
+            ),
+            itemBuilder: (_, i) => _VibeCard(
+              vibe: kBrandVibes[i],
+              selected: selected == kBrandVibes[i].label,
+              onTap: () => onSelect(kBrandVibes[i]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _VibeCard extends StatelessWidget {
+  const _VibeCard({
+    required this.vibe,
+    required this.selected,
+    required this.onTap,
+  });
+  final BrandVibe vibe;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            gradient: selected
+                ? LinearGradient(colors: [
+                    vibe.color.withValues(alpha: 0.18),
+                    vibe.color.withValues(alpha: 0.04),
+                  ])
+                : null,
+            border: Border.all(
+              color: selected ? vibe.color : Theme.of(context).colorScheme.outline,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 28, height: 28,
+                decoration: BoxDecoration(
+                  color: vibe.color,
+                  shape: BoxShape.circle,
+                  boxShadow: selected
+                      ? [BoxShadow(color: vibe.color.withValues(alpha: 0.5), blurRadius: 10)]
+                      : null,
+                ),
+              ),
+              AppSpacing.hGapSm,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(vibe.label,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(
+                      vibe.tagline,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
