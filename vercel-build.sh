@@ -15,6 +15,10 @@ export PATH="$PATH:`pwd`/flutter/bin"
 flutter --version
 flutter doctor -v || true
 flutter config --no-analytics
+# Vercel doesn't ship secrets — create an empty .env so the asset bundler
+# is happy. Real secrets get wired via Vercel project env vars later.
+[ ! -f .env ] && cp .env.example .env
+
 flutter clean
 flutter pub get
 flutter build web --release --pwa-strategy=none --no-tree-shake-icons
