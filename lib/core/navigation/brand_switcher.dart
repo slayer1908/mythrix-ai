@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/models/brand_profile.dart';
 import '../../data/providers/brand_profile_providers.dart';
 import '../router/app_router.dart';
 import '../theme/app_colors.dart';
@@ -115,6 +116,25 @@ class _BrandSwitcherState extends ConsumerState<BrandSwitcher> {
                   active.brandName,
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 ),
+                if (active.accountType == AccountType.agency) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.brandGradient,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: const Text(
+                      'AGENCY',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 4),
                 Icon(Icons.unfold_more_rounded,
                     size: 14, color: colors.onSurface.withValues(alpha: 0.5)),

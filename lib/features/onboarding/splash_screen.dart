@@ -9,6 +9,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/aurora_background.dart';
 import '../../core/widgets/mythrix_logo.dart';
 import '../../data/providers/auth_providers.dart';
+import '../../data/providers/brand_profile_providers.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -40,6 +41,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       final user = await AuthService.instance.restoreSession();
       userId = user?.id;
       debugPrint('[Splash] restoreSession ok, user=${user?.email ?? "null"}');
+
+      // If signed in, pull brand profile(s) from Firestore so a fresh device
+      // / cleared browser cache hydrates from cloud instead of going through
+      // onboarding again.
+      if (user != null) {
+        try {
+          await ref.read(brandProfileProvider.notifier).syncFromCloud();
+          debugPrint('[Splash] Firestore sync complete');
+        } catch (e) {
+          debugPrint('[Splash] Firestore sync failed: $e');
+        }
+      }
     } catch (e, s) {
       debugPrint('[Splash] restoreSession threw: $e\n$s');
     }

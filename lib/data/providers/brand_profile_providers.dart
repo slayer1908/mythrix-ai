@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/services/firestore_sync_service.dart';
 import '../../core/services/hive_service.dart';
 import '../models/brand_profile.dart';
 
@@ -91,6 +92,9 @@ class BrandProfileNotifier extends StateNotifier<BrandProfile?> {
     _activeId = withId.id;
     state = withId;
     HiveService.instance.cache.put(_onboardingDoneKey, true);
+    // Fire-and-forget cloud sync.
+    FirestoreSyncService.instance.saveBrand(withId);
+    FirestoreSyncService.instance.setActiveBrandId(withId.id);
   }
 
   /// Add a NEW brand from the "Add brand" flow.
@@ -99,6 +103,8 @@ class BrandProfileNotifier extends StateNotifier<BrandProfile?> {
     _brands = [..._brands, withId];
     _activeId = withId.id;
     state = withId;
+    FirestoreSyncService.instance.saveBrand(withId);
+    FirestoreSyncService.instance.setActiveBrandId(withId.id);
   }
 
   /// Switch the currently active brand. Every screen that reads brandProfileProvider
@@ -107,6 +113,7 @@ class BrandProfileNotifier extends StateNotifier<BrandProfile?> {
     if (_brands.any((b) => b.id == brandId)) {
       _activeId = brandId;
       state = _brands.firstWhere((b) => b.id == brandId);
+      FirestoreSyncService.instance.setActiveBrandId(brandId);
     }
   }
 
@@ -114,8 +121,10 @@ class BrandProfileNotifier extends StateNotifier<BrandProfile?> {
   void updateActive(BrandProfile updated) {
     if (state == null) return;
     final id = state!.id;
-    _brands = _brands.map((b) => b.id == id ? updated.copyWith(id: id) : b).toList();
-    state = updated.copyWith(id: id);
+    final merged = updated.copyWith(id: id);
+    _brands = _brands.map((b) => b.id == id ? merged : b).toList();
+    state = merged;
+    FirestoreSyncService.instance.saveBrand(merged);
   }
 
   void removeBrand(String brandId) {
@@ -123,6 +132,30 @@ class BrandProfileNotifier extends StateNotifier<BrandProfile?> {
     if (_activeId == brandId) {
       _activeId = _brands.isNotEmpty ? _brands.first.id : null;
       state = _activeBrand();
+    }
+    FirestoreSyncService.instance.removeBrand(brandId);
+  }
+
+  /// Pull brands from Firestore after sign-in. Merges with local Hive cache —
+  /// cloud is the source of truth where there are conflicts on `id`.
+  Future<void> syncFromCloud() async {
+    final remote = await FirestoreSyncService.instance.loadAll();
+    if (remote == null || remote.brands.isEmpty) return;
+
+    final byId = {for (final b in _brands) b.id: b};
+    for (final b in remote.brands) {
+      byId[b.id] = b; // cloud overwrites local
+    }
+    _brands = byId.values.toList();
+    if (remote.activeId != null &&
+        _brands.any((b) => b.id == remote.activeId)) {
+      _activeId = remote.activeId;
+    } else if (_brands.isNotEmpty && _activeId == null) {
+      _activeId = _brands.first.id;
+    }
+    state = _activeBrand();
+    if (state != null && state!.isComplete) {
+      HiveService.instance.cache.put(_onboardingDoneKey, true);
     }
   }
 

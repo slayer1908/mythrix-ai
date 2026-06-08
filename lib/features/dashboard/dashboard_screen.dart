@@ -9,6 +9,7 @@ import '../../core/widgets/animated_entrance.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/kpi_card.dart';
 import '../../core/services/auto_week_service.dart';
+import '../../data/models/brand_profile.dart';
 import '../../data/providers/auth_providers.dart';
 import '../../data/providers/brand_profile_providers.dart';
 import 'widgets/autopilot_card.dart';
@@ -40,6 +41,7 @@ class DashboardScreen extends ConsumerWidget {
                 name: user?.fullName ?? 'there',
                 brandName: profile?.brandName,
                 primaryGoal: profile?.primaryGoal,
+                accountType: profile?.accountType,
               );
             },
           ),
@@ -103,10 +105,12 @@ class _Header extends ConsumerWidget {
     required this.name,
     this.brandName,
     this.primaryGoal,
+    this.accountType,
   });
   final String name;
   final String? brandName;
   final String? primaryGoal;
+  final AccountType? accountType;
 
   String get _greeting {
     final h = DateTime.now().hour;
@@ -118,6 +122,12 @@ class _Header extends ConsumerWidget {
   String get _subtitle {
     final brand = brandName?.trim();
     final goal = primaryGoal?.toLowerCase();
+    if (accountType == AccountType.agency) {
+      if (brand == null || brand.isEmpty) {
+        return "Here's what MYTHRIX did across your clients overnight.";
+      }
+      return "Here's what MYTHRIX did for $brand's clients overnight. Switch brand in the top-left.";
+    }
     if (brand == null || brand.isEmpty) {
       return "Here's what MYTHRIX has been up to overnight.";
     }
