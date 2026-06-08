@@ -12,11 +12,7 @@ class TeamScreen extends StatelessWidget {
   const TeamScreen({super.key});
 
   static const _members = [
-    ('Maya Patel', 'maya@acme.co', 'Owner', AppColors.mythrixViolet),
-    ('Diego Alvarez', 'diego@acme.co', 'Admin', AppColors.mythrixCyan),
-    ('Sasha Kim', 'sasha@acme.co', 'Editor', AppColors.mythrixMagenta),
-    ('Theo Brown', 'theo@acme.co', 'Analyst', AppColors.mythrixLime),
-    ('Lena Cho', 'lena@acme.co', 'Viewer', AppColors.mythrixAmber),
+    ('Ishant Sharma', 'ishants2004@gmail.com', 'Owner', AppColors.mythrixViolet),
   ];
 
   @override
