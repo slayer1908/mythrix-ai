@@ -1,14 +1,10 @@
-// THIS IS A PLACEHOLDER FIREBASE OPTIONS FILE.
+// Real Firebase configuration for the Mythrix.AI project.
+// Web API keys are PUBLIC by design — security is enforced via Firestore
+// rules + Auth, not by hiding this key. Safe to commit.
 //
-// To replace it with your real project config:
-//   1. Install the FlutterFire CLI: `dart pub global activate flutterfire_cli`
-//   2. From the project root, run: `flutterfire configure`
-//   3. Pick / create your Firebase project, select all platforms (web, ios,
-//      android, macos), and this file will be regenerated automatically with
-//      your real keys.
-//
-// Until then, Mythrix runs in "no-firebase" mode — auth uses the mock service,
-// Firestore writes are no-ops, FCM is disabled.
+// To regenerate (e.g. after adding iOS/Android):
+//   dart pub global activate flutterfire_cli
+//   flutterfire configure
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
@@ -16,18 +12,17 @@ import 'package:flutter/foundation.dart'
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    if (kIsWeb) return _stub('web');
+    if (kIsWeb) return web;
     switch (defaultTargetPlatform) {
+      // For now every platform uses the same Web app config. When you add the
+      // iOS/Android apps in the Firebase console, replace these with the
+      // platform-specific options that `flutterfire configure` generates.
       case TargetPlatform.android:
-        return _stub('android');
       case TargetPlatform.iOS:
-        return _stub('ios');
       case TargetPlatform.macOS:
-        return _stub('macos');
       case TargetPlatform.windows:
-        return _stub('windows');
       case TargetPlatform.linux:
-        return _stub('linux');
+        return web;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions is not configured for $defaultTargetPlatform.',
@@ -35,16 +30,16 @@ class DefaultFirebaseOptions {
     }
   }
 
-  /// Placeholder options. Real values are filled in by `flutterfire configure`.
-  static FirebaseOptions _stub(String platform) => FirebaseOptions(
-        apiKey: 'PLACEHOLDER_API_KEY',
-        appId: 'PLACEHOLDER_APP_ID_$platform',
-        messagingSenderId: '0000000000',
-        projectId: 'mythrix-placeholder',
-        storageBucket: 'mythrix-placeholder.appspot.com',
-      );
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyBbspz27gBPDHsFB_uc4h90NJiwZpr-lJo',
+    authDomain: 'mythrix-ai.firebaseapp.com',
+    projectId: 'mythrix-ai',
+    storageBucket: 'mythrix-ai.firebasestorage.app',
+    messagingSenderId: '801198570256',
+    appId: '1:801198570256:web:2c1e260c2f81b24f624395',
+    measurementId: 'G-EZNP3BZ3GW',
+  );
 
-  /// Detect whether Firebase has been properly configured.
-  static bool get isConfigured =>
-      currentPlatform.apiKey != 'PLACEHOLDER_API_KEY';
+  /// Always configured now that real values are wired.
+  static bool get isConfigured => true;
 }

@@ -22,8 +22,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _form = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController(text: 'demo@mythrix.ai');
-  final _passCtrl = TextEditingController(text: 'password123');
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
   bool _obscure = true;
@@ -58,9 +58,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _oauth(SocialProvider p) async {
-    setState(() => _loading = true);
-    await AuthService.instance.signInWithProvider(p);
-    if (mounted) context.go(AppRoutes.dashboard);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await AuthService.instance.signInWithProvider(p);
+      if (mounted) context.go(AppRoutes.dashboard);
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Sign-in failed. Try again.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _forgot() async {
+    final email = _emailCtrl.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      Snack.info(context, 'Type your email above first, then click Forgot password.');
+      return;
+    }
+    try {
+      await AuthService.instance.sendPasswordReset(email);
+      if (mounted) {
+        Snack.success(context, 'Reset link sent to $email. Check your inbox.');
+      }
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    }
   }
 
   @override
@@ -121,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => Snack.info(context, 'Password reset arrives with Firebase Auth in Phase 1. Use the demo credentials shown.'),
+                    onPressed: _forgot,
                     child: const Text('Forgot password?'),
                   ),
                 ),
