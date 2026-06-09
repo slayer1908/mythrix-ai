@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../core/router/app_router.dart';
+import '../../core/services/razorpay_service.dart';
 import '../../core/utils/snack.dart';
 import '../../data/models/user_plan.dart';
 import '../../data/providers/plan_providers.dart';
-import 'package:go_router/go_router.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_button.dart';
 
@@ -188,6 +190,28 @@ class _Pill extends StatelessWidget {
   }
 }
 
+/// Centralized checkout handler. If Razorpay payment links are configured,
+/// opens the hosted checkout. Otherwise, starts a local trial (so the demo
+/// flow works before billing is wired live).
+Future<void> _handleCheckout(BuildContext ctx, WidgetRef ref, PlanTier tier) async {
+  if (RazorpayService.isConfigured) {
+    final launched = await RazorpayService.instance.launchCheckout(tier);
+    if (!launched && ctx.mounted) {
+      Snack.info(ctx, 'Couldn\'t open Razorpay. Try again or DM hello@mythrix.ai.');
+    }
+    return;
+  }
+  // Demo mode — start trial locally so the UX is testable.
+  await ref.read(userPlanProvider.notifier).startTrial(tier);
+  if (ctx.mounted) {
+    Snack.success(ctx,
+        tier == PlanTier.pro
+            ? '✨ 14-day Pro trial activated (demo — real Razorpay billing wires up when payment links are set).'
+            : '✨ Agency tier activated (demo mode).');
+    ctx.go(AppRoutes.billing);
+  }
+}
+
 class _PlanCard extends StatelessWidget {
   const _PlanCard({
     required this.name,
@@ -278,13 +302,7 @@ class _PlanCard extends StatelessWidget {
                 Consumer(builder: (ctx, ref, _) => GradientButton(
                   label: cta,
                   icon: Icons.bolt_rounded,
-                  onPressed: () async {
-                    await ref.read(userPlanProvider.notifier).startTrial(PlanTier.pro);
-                    if (ctx.mounted) {
-                      Snack.success(ctx, '✨ 14-day Pro trial activated — go to Billing to manage.');
-                      ctx.go(AppRoutes.billing);
-                    }
-                  },
+                  onPressed: () => _handleCheckout(ctx, ref, PlanTier.pro),
                 ))
               else
                 Consumer(builder: (ctx, ref, _) => OutlinedButton(
@@ -293,12 +311,7 @@ class _PlanCard extends StatelessWidget {
                       Snack.info(ctx, 'You\'re already on the free Starter plan.');
                       return;
                     }
-                    // Agency tier
-                    await ref.read(userPlanProvider.notifier).startTrial(PlanTier.agency);
-                    if (ctx.mounted) {
-                      Snack.success(ctx, '✨ Agency tier activated — DM us at hello@mythrix.ai for invoicing.');
-                      ctx.go(AppRoutes.billing);
-                    }
+                    await _handleCheckout(ctx, ref, PlanTier.agency);
                   },
                   child: Text(cta),
                 )),
@@ -345,6 +358,8 @@ class _FAQ extends StatelessWidget {
                 'Everything you create stays yours. Local + cloud sync are unlimited on every plan.'),
             ('Do I need my own AI API keys?',
                 'No. Pollinations runs on Starter (free). Pro lets you paste OpenAI/Anthropic/Gemini keys for premium quality.'),
+            ('How do I pay? Stripe?',
+                'No — Mythrix uses Razorpay (the India-friendly payment processor). You can pay with UPI, credit/debit card, or netbanking. Indian + international customers both supported.'),
             ('When does real ad-platform OAuth ship?',
                 'Phase 4 of the roadmap. We\'re prioritizing it once 10 marketers on Pro tell us which networks they need first.'),
             ('Agencies — can I white-label this?',

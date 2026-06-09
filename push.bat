@@ -1,8 +1,8 @@
 @echo off
-title MYTHRIX.AI - REAL BILLING SYSTEM
+title MYTHRIX.AI - Switch Stripe to Razorpay
 cd /d C:\FlutterProjects\Mythrix_AI
 git add -A
-git commit -m "REAL BILLING: PlanTier model + Firestore-backed plan provider + real Billing screen (usage vs limits + upgrade flow + cancel) + topbar trial countdown / Upgrade pill + Pricing CTAs that actually start trial"
+git commit -m "Switch billing: Stripe -> Razorpay (UPI/cards/netbanking, India-friendly). Add razorpay_service.dart with paymentLinks config + RAZORPAY_SETUP.md (full guide to taking real money)"
 git push origin main
-echo Pushed. Vercel rebuilding.
+echo Pushed.
 pause >nul

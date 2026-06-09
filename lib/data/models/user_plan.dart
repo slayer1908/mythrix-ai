@@ -98,14 +98,14 @@ class UserPlan {
     required this.tier,
     this.trialEndsAt,
     this.subscribedAt,
-    this.stripeCustomerId,
+    this.razorpayCustomerId,
     this.cancelAtPeriodEnd = false,
   });
 
   final PlanTier tier;
   final DateTime? trialEndsAt;
   final DateTime? subscribedAt;
-  final String? stripeCustomerId;
+  final String? razorpayCustomerId;
   final bool cancelAtPeriodEnd;
 
   PlanLimits get limits => PlanLimits.forTier(tier);
@@ -126,7 +126,7 @@ class UserPlan {
         'tier': tier.name,
         'trialEndsAt': trialEndsAt?.toIso8601String(),
         'subscribedAt': subscribedAt?.toIso8601String(),
-        'stripeCustomerId': stripeCustomerId,
+        'razorpayCustomerId': razorpayCustomerId,
         'cancelAtPeriodEnd': cancelAtPeriodEnd,
       };
 
@@ -141,7 +141,7 @@ class UserPlan {
         subscribedAt: m['subscribedAt'] != null
             ? DateTime.tryParse(m['subscribedAt'] as String)
             : null,
-        stripeCustomerId: m['stripeCustomerId'] as String?,
+        razorpayCustomerId: m['razorpayCustomerId'] as String?,
         cancelAtPeriodEnd: m['cancelAtPeriodEnd'] as bool? ?? false,
       );
 

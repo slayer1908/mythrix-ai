@@ -89,11 +89,11 @@ class UserPlanNotifier extends StateNotifier<UserPlan> {
 
   /// Called after Stripe Checkout success (webhook updates this in cloud,
   /// or the success-return URL handler updates it locally).
-  Future<void> markPaid(PlanTier tier, {String? stripeCustomerId}) async {
+  Future<void> markPaid(PlanTier tier, {String? razorpayCustomerId}) async {
     final newPlan = UserPlan(
       tier: tier,
       subscribedAt: DateTime.now(),
-      stripeCustomerId: stripeCustomerId ?? state.stripeCustomerId,
+      razorpayCustomerId: razorpayCustomerId ?? state.razorpayCustomerId,
       trialEndsAt: null,
     );
     state = newPlan;
@@ -106,7 +106,7 @@ class UserPlanNotifier extends StateNotifier<UserPlan> {
       tier: state.tier,
       trialEndsAt: state.trialEndsAt,
       subscribedAt: state.subscribedAt,
-      stripeCustomerId: state.stripeCustomerId,
+      razorpayCustomerId: state.razorpayCustomerId,
       cancelAtPeriodEnd: true,
     );
     state = newPlan;
