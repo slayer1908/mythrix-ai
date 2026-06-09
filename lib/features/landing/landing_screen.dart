@@ -79,6 +79,8 @@ class _LandingScreenState extends ConsumerState<LandingScreen> {
                     AppSpacing.vGapXxl,
                     const _FeatureGrid(),
                     AppSpacing.vGapXxl,
+                    const _AgencyCallout(),
+                    AppSpacing.vGapXxl,
                     const _SocialProof(),
                     AppSpacing.vGapXxl,
                     AppSpacing.vGapXxl,
@@ -375,6 +377,175 @@ class _Feature extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AgencyCallout extends StatelessWidget {
+  const _AgencyCallout();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1100),
+        child: GlassCard(
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.brandGradient,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                      child: const Text(
+                        'FOR AGENCIES + FREELANCERS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    AppSpacing.vGapMd,
+                    const Text(
+                      'One Mythrix.\nUnlimited client brands.',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    AppSpacing.vGapMd,
+                    Text(
+                      'Manage 5, 15, or 50 client brands from a single workspace. Each client gets a dedicated voice, audience, palette, and reporting view. Switch between them with one click via the top-left brand picker.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 16,
+                        height: 1.55,
+                      ),
+                    ),
+                    AppSpacing.vGapLg,
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: const [
+                        _AgencyChip(text: 'Notion-style brand switcher'),
+                        _AgencyChip(text: 'Per-client AI voice'),
+                        _AgencyChip(text: 'White-label reports (soon)'),
+                        _AgencyChip(text: 'Team seats'),
+                        _AgencyChip(text: 'Bulk ops'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (MediaQuery.sizeOf(context).width >= 900) ...[
+                AppSpacing.hGapXxl,
+                Expanded(
+                  flex: 2,
+                  child: _AgencyMockBrands(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AgencyChip extends StatelessWidget {
+  const _AgencyChip({required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.check_rounded, color: Colors.white, size: 13),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AgencyMockBrands extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    const brands = [
+      ('Brewline', 'E-commerce', AppColors.mythrixLime),
+      ('Northwave', 'D2C', AppColors.mythrixCyan),
+      ('Helios', 'B2B SaaS', AppColors.mythrixViolet),
+      ('Mariposa', 'Hospitality', AppColors.mythrixCoral),
+      ('Atlas Health', 'Healthcare', AppColors.mythrixIndigo),
+    ];
+    return Column(
+      children: [
+        for (final b in brands)
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 32, height: 32,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [b.$3, b.$3.withValues(alpha: 0.7)]),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    b.$1[0],
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(b.$1,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                      Text(b.$2,
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 11)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_rounded,
+                    color: Colors.white.withValues(alpha: 0.4), size: 16),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

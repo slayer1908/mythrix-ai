@@ -11,6 +11,7 @@ import '../../features/analytics/analytics_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../features/audiences/audiences_screen.dart';
+import '../../features/pricing/pricing_screen.dart';
 import '../../features/automations/automation_rules_screen.dart';
 import '../../features/conversions/conversions_screen.dart';
 import '../../features/billing/billing_screen.dart';
@@ -56,6 +57,7 @@ class AppRoutes {
   static const integrations = '/app/integrations';
   static const conversions = '/app/conversions';
   static const audiences = '/app/audiences';
+  static const pricing = '/app/pricing';
   static const onboarding = '/onboarding';
 }
 
@@ -139,6 +141,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: AppRoutes.integrations, builder: (_, __) => const IntegrationsScreen()),
           GoRoute(path: AppRoutes.conversions, builder: (_, __) => const ConversionsScreen()),
           GoRoute(path: AppRoutes.audiences, builder: (_, __) => const AudiencesScreen()),
+          GoRoute(path: AppRoutes.pricing, builder: (_, __) => const PricingScreen()),
         ],
       ),
     ],
