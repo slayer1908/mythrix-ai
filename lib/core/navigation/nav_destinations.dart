@@ -149,6 +149,12 @@ const List<NavSection> kNavSections = [
       route: AppRoutes.pricing,
     ),
     NavDestination(
+      label: 'Billing',
+      icon: Icons.credit_card_outlined,
+      activeIcon: Icons.credit_card_rounded,
+      route: AppRoutes.billing,
+    ),
+    NavDestination(
       label: 'Settings',
       icon: Icons.tune_outlined,
       activeIcon: Icons.tune_rounded,

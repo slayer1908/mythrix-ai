@@ -14,7 +14,7 @@ import '../../features/audiences/audiences_screen.dart';
 import '../../features/pricing/pricing_screen.dart';
 import '../../features/automations/automation_rules_screen.dart';
 import '../../features/conversions/conversions_screen.dart';
-import '../../features/billing/billing_screen.dart';
+import '../../features/billing/billing_real_screen.dart';
 import '../../features/brand_assets/brand_assets_screen.dart';
 import '../../features/content_studio/content_studio_screen.dart';
 import '../../features/creative_studio/creative_studio_screen.dart';
@@ -136,7 +136,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: AppRoutes.brand, builder: (_, __) => const BrandAssetsScreen()),
           GoRoute(path: AppRoutes.team, builder: (_, __) => const TeamScreen()),
           GoRoute(path: AppRoutes.settings, builder: (_, __) => const SettingsScreen()),
-          GoRoute(path: AppRoutes.billing, builder: (_, __) => const BillingScreen()),
+          GoRoute(path: AppRoutes.billing, builder: (_, __) => const BillingRealScreen()),
           GoRoute(path: AppRoutes.library, builder: (_, __) => const LibraryScreen()),
           GoRoute(path: AppRoutes.integrations, builder: (_, __) => const IntegrationsScreen()),
           GoRoute(path: AppRoutes.conversions, builder: (_, __) => const ConversionsScreen()),

@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/router/app_router.dart';
 import '../../core/utils/snack.dart';
+import '../../data/models/user_plan.dart';
+import '../../data/providers/plan_providers.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_button.dart';
 
@@ -271,18 +275,31 @@ class _PlanCard extends StatelessWidget {
               const Spacer(),
               AppSpacing.vGapLg,
               if (highlight)
-                Builder(builder: (ctx) => GradientButton(
+                Consumer(builder: (ctx, ref, _) => GradientButton(
                   label: cta,
                   icon: Icons.bolt_rounded,
-                  onPressed: () => Snack.info(ctx,
-                      'Stripe billing wires up in Phase 1.7 — for now this is free.'),
+                  onPressed: () async {
+                    await ref.read(userPlanProvider.notifier).startTrial(PlanTier.pro);
+                    if (ctx.mounted) {
+                      Snack.success(ctx, '✨ 14-day Pro trial activated — go to Billing to manage.');
+                      ctx.go(AppRoutes.billing);
+                    }
+                  },
                 ))
               else
-                Builder(builder: (ctx) => OutlinedButton(
-                  onPressed: () => Snack.info(ctx,
-                      price == 0
-                          ? 'You\'re already on the free plan.'
-                          : 'Stripe billing wires up next. Contact us if you want early access.'),
+                Consumer(builder: (ctx, ref, _) => OutlinedButton(
+                  onPressed: () async {
+                    if (price == 0) {
+                      Snack.info(ctx, 'You\'re already on the free Starter plan.');
+                      return;
+                    }
+                    // Agency tier
+                    await ref.read(userPlanProvider.notifier).startTrial(PlanTier.agency);
+                    if (ctx.mounted) {
+                      Snack.success(ctx, '✨ Agency tier activated — DM us at hello@mythrix.ai for invoicing.');
+                      ctx.go(AppRoutes.billing);
+                    }
+                  },
                   child: Text(cta),
                 )),
             ],

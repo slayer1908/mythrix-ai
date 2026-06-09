@@ -5,6 +5,10 @@ import '../../data/providers/auth_providers.dart';
 import '../../data/providers/theme_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import 'package:go_router/go_router.dart';
+
+import '../router/app_router.dart';
+import '../../data/providers/plan_providers.dart';
 import 'brand_switcher.dart';
 import 'notifications_panel.dart';
 
@@ -53,6 +57,8 @@ class TopBar extends ConsumerWidget {
       child: Row(
         children: [
           const BrandSwitcher(),
+          AppSpacing.hGapSm,
+          const _TrialBadge(),
           AppSpacing.hGapMd,
           Expanded(
             child: _SearchTrigger(onTap: onOpenCommandPalette),
@@ -93,6 +99,84 @@ class TopBar extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+/// Topbar pill that shows trial countdown or "Upgrade" CTA based on plan.
+class _TrialBadge extends ConsumerWidget {
+  const _TrialBadge();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plan = ref.watch(userPlanProvider);
+
+    if (plan.isOnTrial) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          onTap: () => context.go(AppRoutes.billing),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.schedule_rounded, size: 12, color: AppColors.warning),
+                const SizedBox(width: 5),
+                Text(
+                  '${plan.trialDaysLeft}d trial',
+                  style: const TextStyle(
+                    color: AppColors.warning,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (plan.tier == PlanTier.starter) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          onTap: () => context.go(AppRoutes.pricing),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              gradient: AppColors.brandGradient,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.bolt_rounded, size: 12, color: Colors.white),
+                SizedBox(width: 4),
+                Text(
+                  'Upgrade',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Pro / Agency — silent
+    return const SizedBox.shrink();
   }
 }
 
