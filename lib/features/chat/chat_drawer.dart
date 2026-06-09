@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/services/auto_week_service.dart';
+import '../../core/services/demo_seeder_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/snack.dart';
@@ -62,7 +63,13 @@ class _ChatDrawerState extends ConsumerState<ChatDrawer> {
     switch (cmd) {
       case '/help':
         Snack.info(context,
-            'Commands: /post · /email · /campaign · /audience · /week · /go [screen]');
+            'Commands: /seed · /post · /email · /campaign · /audience · /week · /go [screen]');
+        return true;
+      case '/seed':
+      case '/demo':
+      case '/sample':
+        final result = DemoSeederService.run(ref);
+        Snack.success(context, '✨ Sample data added — ${result.summary}');
         return true;
       case '/week':
       case '/runweek':
