@@ -8,6 +8,7 @@ import '../theme/app_spacing.dart';
 import 'package:go_router/go_router.dart';
 
 import '../router/app_router.dart';
+import '../../data/models/user_plan.dart';
 import '../../data/providers/plan_providers.dart';
 import 'brand_switcher.dart';
 import 'notifications_panel.dart';
