@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../data/models/audience.dart';
 import '../../data/models/automation_rule.dart';
+import '../../data/models/campaign.dart';
 import '../../data/models/conversion_event.dart';
 import '../../data/providers/audiences_providers.dart';
 import '../../data/providers/automation_rules_providers.dart';
