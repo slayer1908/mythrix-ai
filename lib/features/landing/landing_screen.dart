@@ -451,7 +451,7 @@ class _AgencyCallout extends StatelessWidget {
                 ),
               ),
               if (MediaQuery.sizeOf(context).width >= 900) ...[
-                AppSpacing.hGapXxl,
+                AppSpacing.hGapXl,
                 Expanded(
                   flex: 2,
                   child: _AgencyMockBrands(),
